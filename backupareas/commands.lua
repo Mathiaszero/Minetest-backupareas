@@ -116,24 +116,41 @@ core.register_chatcommand("la", {
 	description = S("Load areas."),
 	privs = {server = true,},
 	func = function(name, param)
+		--get schema folder path
 		local schema_dir = core.get_worldpath().."/schema/"
+		--get list of files in schema folder
 		local dir_list = core.get_dir_list(schema_dir, false)
+		--loop through each schema file
 		for i, file in ipairs(dir_list) do
+			--open schema file to read node data
 			local schema_file, err = io.open(schema_dir..file, "r")
+			--loop through each node data which is a line in schema file
 			for line in schema_file:lines() do
+				--split data of the node by ","
 				local node_list = string.split(line, ",")
+				--extract node position coordinates
 				local x, y, z = node_list[1], node_list[2], node_list[3]
+				--create position vector
 				local pos = vector.new(x, y, z)
+				--create node table with name, lighting and orientation data
 				local node_table = {name = node_list[4], param1 = node_list[5], param2 = node_list[6]}
+				--set node into world at position with node table data
 				core.set_node(pos, node_table)
+				--get node metadata from position
 				local node_meta = core.get_meta(pos)
+				--get node inventory metadata from position
 				local inv = node_meta:get_inventory(pos)
+				--loop through remaining data in node list for inventory items
 				for i = 7, #node_list do
+					--split each inventory slot into list name, item name and item count
 					local item_data = string.split(node_list[i], " ")
+					--set each element into variables
 					local list_name, item_name, item_count = item_data[1], item_data[2], item_data[3]
+					--add item into each node inventory slot
 					inv:add_item(list_name, item_name.." "..item_count)
 				end
 			end
+			--close schema file after all nodes and their data are set in world
 			schema_file:close()
 		end
 	end,
