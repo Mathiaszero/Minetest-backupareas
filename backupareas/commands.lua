@@ -20,12 +20,8 @@ core.register_chatcommand("sa", {
 		end
 		--save file for each area
 		for i, v in ipairs(ad_json) do
-			local p1x = v["pos1"]["x"]
-			local p1y = v["pos1"]["y"]
-			local p1z = v["pos1"]["z"]
-			local p2x = v["pos2"]["x"]
-			local p2y = v["pos2"]["y"]
-			local p2z = v["pos2"]["z"]
+			local p1x , p1y, p1z = v["pos1"]["x"], v["pos1"]["y"], v["pos1"]["z"]
+			local p2x , p2y, p2z = v["pos2"]["x"], v["pos2"]["y"], v["pos2"]["z"]
 			local schema_suffix = string.format(
 				"%s,%s,%s,%s,%s,%s,.txt",
 				p1x,p1y,p1z,p2x,p2y,p2z
@@ -38,18 +34,10 @@ core.register_chatcommand("sa", {
 		local dir_list = core.get_dir_list(schema_dir, false)
 		for i, file in ipairs(dir_list) do
 			local fns = string.split(file, ",")
-			local p1x = fns[1]
-			local p1y = fns[2]
-			local p1z = fns[3]
-			local p2x = fns[4]
-			local p2y = fns[5]
-			local p2z = fns[6]
-			local xmin = math.min(p1x, p2x)
-			local ymin = math.min(p1y, p2y)
-			local zmin = math.min(p1z, p2z)
-			local xmax = math.max(p1x, p2x)
-			local ymax = math.max(p1y, p2y)
-			local zmax = math.max(p1z, p2z)
+			local p1x, p1y, p1z = fns[1], fns[2], fns[3]
+			local p2x, p2y, p2z = fns[4], fns[5], fns[6]
+			local xmin, ymin, zmin = math.min(p1x, p2x), math.min(p1y, p2y), math.min(p1z, p2z)
+			local xmax, ymax, zmax = math.max(p1x, p2x), math.max(p1y, p2y), math.max(p1z, p2z)
 			local area_nodes = {}
 			for x = xmin, xmax do
 				for y = ymin, ymax do
@@ -61,9 +49,7 @@ core.register_chatcommand("sa", {
 			for i, v in ipairs(area_nodes) do
 				local schema_file, err = io.open(schema_dir..file, "a")
 				local node = {}
-				local x = v[1]
-				local y = v[2]
-				local z = v[3]
+				local x, y, z = v[1], v[2], v[3]
 				table.insert(node, x)
 				table.insert(node, y)
 				table.insert(node, z)
@@ -100,23 +86,15 @@ core.register_chatcommand("la", {
 			local schema_file, err = io.open(schema_dir..file, "r")
 			for line in schema_file:lines() do
 				local node_list = string.split(line, ",")
-				local x = node_list[1]
-				local y = node_list[2]
-				local z = node_list[3]
+				local x, y, z = node_list[1], node_list[2], node_list[3]
 				local pos = vector.new(x, y, z)
-				local node_table = {
-					name = node_list[4],
-					param1 = node_list[5],
-					param2 = node_list[6]
-				}
+				local node_table = {name = node_list[4], param1 = node_list[5], param2 = node_list[6]}
 				core.set_node(pos, node_table)
 				local node_meta = core.get_meta(pos)
 				local inv = node_meta:get_inventory(pos)
 				for i = 7, #node_list do
 					local item_data = string.split(node_list[i], " ")
-					local list_name = item_data[1]
-					local item_name = item_data[2]
-					local item_count = item_data[3]
+					local list_name, item_name, item_count = item_data[1], item_data[2], item_data[3]
 					inv:add_item(list_name, item_name.." "..item_count)
 				end
 			end
