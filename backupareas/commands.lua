@@ -2,6 +2,7 @@ local S = core.get_translator("backupareas")
 
 core.register_chatcommand("sa", {
 	description = S("Save areas."),
+	privs = {server = true,},
 	func = function(name, param)
 		--create dir to store areas
 		local schema_dir = core.get_worldpath().."/schema/"
@@ -57,7 +58,6 @@ core.register_chatcommand("sa", {
 					end
 				end
 			end
-
 			for i, v in ipairs(area_nodes) do
 				local schema_file, err = io.open(schema_dir..file, "a")
 				local node = {}
@@ -92,6 +92,7 @@ core.register_chatcommand("sa", {
 
 core.register_chatcommand("la", {
 	description = S("Load areas."),
+	privs = {server = true,},
 	func = function(name, param)
 		local schema_dir = core.get_worldpath().."/schema/"
 		local dir_list = core.get_dir_list(schema_dir, false)
@@ -119,6 +120,7 @@ core.register_chatcommand("la", {
 					inv:add_item(list_name, item_name.." "..item_count)
 				end
 			end
+			schema_file:close()
 		end
 	end,
 })
