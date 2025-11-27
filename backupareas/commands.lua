@@ -1,5 +1,44 @@
 local S = core.get_translator("backupareas")
 
+local function save_node(schema_dir, file, x, y, z)
+	--open file to append node data
+	local schema_file, err = io.open(schema_dir..file, "a")
+	--create list to hold node data
+	local node = {}
+	--insert each coordinate into node data list
+	table.insert(node, x)
+	table.insert(node, y)
+	table.insert(node, z)
+	--combine coordinates into vector position
+	local pos = vector.new(x, y, z)
+	--get node name, lighting and orientation data
+	local node_table = core.get_node(pos)
+	--insert data into node data list
+	table.insert(node, node_table.name)
+	table.insert(node, node_table.param1)
+	table.insert(node, node_table.param2)
+	--get node metadata
+	local node_meta = core.get_meta(pos)
+	--get node inventory metadata
+	local inv = node_meta:get_inventory()
+	--get inventory types
+	for list, items in pairs(inv:get_lists()) do
+		--for each inventory type, loop through slots
+		for i, itemstack in ipairs(items) do
+			--if slot empty, insert placeholder, b/c data organized as [list] [name] [count]
+			if itemstack:is_empty() then
+				table.insert(node, "0 0 0")
+			else
+				table.insert(node, list.." "..itemstack:get_name().." "..itemstack:get_count())
+			end
+		end
+	end
+	--write node data as comma separated line in schema file
+	schema_file:write(table.concat(node, ",").."\n")
+	--close schema file after writing in all data for that node
+	schema_file:close()
+end
+
 core.register_chatcommand("sa", {
 	description = S("Save areas."),
 	privs = {server = true,},
@@ -56,58 +95,14 @@ core.register_chatcommand("sa", {
 			local xmin, ymin, zmin = math.min(p1x, p2x), math.min(p1y, p2y), math.min(p1z, p2z)
 			--determine max coordinates to loop through area nodes
 			local xmax, ymax, zmax = math.max(p1x, p2x), math.max(p1y, p2y), math.max(p1z, p2z)
-			--create list for adding each node in area
-			local area_nodes = {}
 			--loop through each node within area bounds
 			for x = xmin, xmax do
 				for y = ymin, ymax do
 					for z = zmin, zmax do
-						--insert each node position into area nodes list
-						table.insert(area_nodes, {x, y, z})
+						save_node(schema_dir, file, x, y, z)
 					end
 				end
-			end
-			--loop through each node in area nodes list
-			for i, v in ipairs(area_nodes) do
-				--open file to append node data
-				local schema_file, err = io.open(schema_dir..file, "a")
-				--create list to hold node data
-				local node = {}
-				--get node coordinates from a node in area nodes list
-				local x, y, z = v[1], v[2], v[3]
-				--insert each coordinate into node data list
-				table.insert(node, x)
-				table.insert(node, y)
-				table.insert(node, z)
-				--combine coordinates into vector position
-				local pos = vector.new(x, y, z)
-				--get node name, lighting and orientation data
-				local node_table = core.get_node(pos)
-				--insert data into node data list
-				table.insert(node, node_table.name)
-				table.insert(node, node_table.param1)
-				table.insert(node, node_table.param2)
-				--get node metadata
-				local node_meta = core.get_meta(pos)
-				--get node inventory metadata
-				local inv = node_meta:get_inventory()
-				--get inventory types
-				for list, items in pairs(inv:get_lists()) do
-					--for each inventory type, loop through slots
-					for i, itemstack in ipairs(items) do
-						--if slot empty, insert placeholder, b/c data organized as [list] [name] [count]
-						if itemstack:is_empty() then
-							table.insert(node, "0 0 0")
-						else
-							table.insert(node, list.." "..itemstack:get_name().." "..itemstack:get_count())
-						end
-					end
-				end		
-				--write node data as comma separated line in schema file
-				schema_file:write(table.concat(node, ",").."\n")
-				--close schema file after writing in all data for that node
-				schema_file:close()
-			end
+			end	
 		end
 	end,
 })
