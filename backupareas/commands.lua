@@ -1,5 +1,11 @@
 local S = core.get_translator("backupareas")
 
+local function monitor(i, total, x, y, z, xmax, ymax, zmax)
+	local monitor_file, err = io.open(core.get_worldpath().."/monitor.txt", "w")
+	monitor_file:write(i.."/"..total..": "..x..","..y..","..z.."/"..xmax..","..ymax..","..zmax)
+	monitor_file:close()
+end
+
 local function save_node(schema_dir, file, x, y, z)
 	--open file to append node data
 	local schema_file, err = io.open(schema_dir..file, "a")
@@ -99,6 +105,7 @@ core.register_chatcommand("sa", {
 			for x = xmin, xmax do
 				for y = ymin, ymax do
 					for z = zmin, zmax do
+						--monitor(i, #dir_list, x, y, z, xmax, ymax, zmax)
 						save_node(schema_dir, file, x, y, z)
 					end
 				end
