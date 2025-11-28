@@ -6,9 +6,10 @@ local function monitor(i, total, x, y, z, xmax, ymax, zmax)
 	monitor_file:close()
 end
 
-local function save_node(schema_dir, file, x, y, z)
+local function save_node(schema_file, x, y, z)
 	--open file to append node data
-	local schema_file, err = io.open(schema_dir..file, "a")
+	--local schema_file, err = io.open(schema_dir..file, "a")
+	
 	--create list to hold node data
 	local node = {}
 	--insert each coordinate into node data list
@@ -41,8 +42,9 @@ local function save_node(schema_dir, file, x, y, z)
 	end
 	--write node data as comma separated line in schema file
 	schema_file:write(table.concat(node, ",").."\n")
+	
 	--close schema file after writing in all data for that node
-	schema_file:close()
+	--schema_file:close()
 end
 
 core.register_chatcommand("sa", {
@@ -102,14 +104,17 @@ core.register_chatcommand("sa", {
 			--determine max coordinates to loop through area nodes
 			local xmax, ymax, zmax = math.max(p1x, p2x), math.max(p1y, p2y), math.max(p1z, p2z)
 			--loop through each node within area bounds
+			local schema_file, err = io.open(schema_dir..file, "a")
 			for x = xmin, xmax do
 				for y = ymin, ymax do
 					for z = zmin, zmax do
 						--monitor(i, #dir_list, x, y, z, xmax, ymax, zmax)
-						save_node(schema_dir, file, x, y, z)
+						--save_node(schema_dir, file, x, y, z)
+						save_node(schema_file, x, y, z)
 					end
 				end
 			end	
+			schema_file:close()
 		end
 	end,
 })
