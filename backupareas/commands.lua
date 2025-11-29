@@ -11,10 +11,12 @@ local function save_node(name, schema_file, x, y, z)
 	local pos = vector.new(x, y, z)
 	--get node name, lighting and orientation data
 	local node_table = core.get_node(pos)
+	
 	--insert data into node data list
 	table.insert(node, node_table.name)
 	table.insert(node, node_table.param1)
 	table.insert(node, node_table.param2)
+	
 	--get node metadata
 	local node_meta = core.get_meta(pos)
 	local node_meta_keys = node_meta:get_keys()
@@ -62,21 +64,23 @@ local function save_node(name, schema_file, x, y, z)
 			for tri_key, tri_val in pairs(node["inv"][inv_type][istack_index]) do
 				for key_index, key in pairs(istack_meta_keys) do
 					node["inv"][inv_type][istack_index].i_meta[key] = istack_meta:get_string(key)
-					core.chat_send_player(name, key)
+					--core.chat_send_player(name, key)
 				end
 			end
 		end
 	end
 
-	--schema_file:write(core.serialize(node).."\n")
+	schema_file:write(core.serialize(node).."\n")
+	
 	--schema_file:write("\n"..core.serialize(node))
 	--schema_file:write(core.serialize(node))
-	local text = core.serialize(node)
-	schema_file:write(text)
-	local last_char = string.sub(text, -1)
-	if last_char =="}" then
-		schema_file:write("\n")
-	end
+	
+	-- local text = core.serialize(node)
+	-- schema_file:write(text)
+	-- local last_char = string.sub(text, -1)
+	-- if last_char =="}" then
+	-- 	schema_file:write("\n")
+	-- end
 	
 end
 
