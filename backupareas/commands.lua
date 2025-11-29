@@ -23,29 +23,61 @@ local function save_node(name, schema_file, x, y, z)
 		--core.chat_send_player(name, dump(node_meta_keys))
 	end
 
-	--[7]
-	-- if node_table.name == "default:chest_locked" then
-	-- 	table.insert(node, node_meta:get_string("owner"))
-	-- elseif node_table.name == "default:sign_wall_wood" then
-	-- 	table.insert(node, node_meta:get_string("text"))
-	-- end
-
-	-- node["node_meta"] = node_meta_keys
-	-- local node_meta_json = node["node_meta"]
-	-- for i, v in pairs(node_meta_json) do
-	-- 	--core.chat_send_player(name, v)--infotext, owner, etc.
-	-- 	if v == "owner" or v== "infotext" then
-	-- 		--node_meta_json[v] = v
-	-- 	end
-	-- end
-
-	node["node_meta"] = {}
+	node["n_meta"] = {}
 	for i, v in ipairs(node_meta_keys) do
-		node["node_meta"][v] = node_meta:get_string(v)
+		if node_table.name == "default:furnace" and v == "infotext" then
+			--return
+		end
+		node["n_meta"][v] = node_meta:get_string(v)
 		--node["node_meta"][v] = "hi"
 	end
 
-	schema_file:write(core.serialize(node).."\n")
+	local inv = node_meta:get_inventory()
+	local inv_lists = inv:get_lists()
+	node["inv"] = {}
+	-- for inv_type, inv_type_contents in pairs(inv_lists) do
+	-- 	for istack_index, istack in ipairs(inv_type_contents) do
+	-- 		node["inv"][tostring(istack_index)] = {name = istack:get_name(), count = istack:get_count(), i_meta = {}}
+	-- 		local istack_meta = istack:get_meta()
+	-- 		local istack_meta_keys = istack_meta:get_keys()
+	-- 		for tri_key, tri_val in pairs(node["inv"][tostring(istack_index)]) do
+	-- 			for key_index, key in pairs(istack_meta_keys) do
+	-- 				node["inv"][tostring(istack_index)].i_meta[key] = istack_meta:get_string(key)
+	-- 			end
+	-- 		end
+	-- 	end
+	-- end
+
+	for inv_type, inv_type_contents in pairs(inv_lists) do
+
+		if node_table.name == "default:furnace" then
+			--break
+		end
+
+		node["inv"][inv_type] = {}
+		for istack_index, istack in ipairs(inv_type_contents) do
+			node["inv"][inv_type][istack_index] = {name = istack:get_name(), count = istack:get_count(), i_meta = {}}
+			local istack_meta = istack:get_meta()
+			local istack_meta_keys = istack_meta:get_keys()
+			for tri_key, tri_val in pairs(node["inv"][inv_type][istack_index]) do
+				for key_index, key in pairs(istack_meta_keys) do
+					node["inv"][inv_type][istack_index].i_meta[key] = istack_meta:get_string(key)
+					core.chat_send_player(name, key)
+				end
+			end
+		end
+	end
+
+	--schema_file:write(core.serialize(node).."\n")
+	--schema_file:write("\n"..core.serialize(node))
+	--schema_file:write(core.serialize(node))
+	local text = core.serialize(node)
+	schema_file:write(text)
+	local last_char = string.sub(text, -1)
+	if last_char =="}" then
+		schema_file:write("\n")
+	end
+	
 end
 
 core.register_chatcommand("sa", {
