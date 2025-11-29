@@ -1,4 +1,6 @@
 local S = core.get_translator("backupareas")
+--random hex separator instead of commas, so sign/book text can be added
+local divider = "|2ef9c|"
 
 local function monitor(i, total, x, y, z, xmax, ymax, zmax)
 	local monitor_file, err = io.open(core.get_worldpath().."/monitor.txt", "w")
@@ -6,8 +8,8 @@ local function monitor(i, total, x, y, z, xmax, ymax, zmax)
 	monitor_file:close()
 end
 
-local function save_node(schema_file, x, y, z)
-	--open file to append node data
+local function save_node(name, schema_file, x, y, z)
+	--open file to append node data (lags b/c each node)
 	--local schema_file, err = io.open(schema_dir..file, "a")
 	
 	--create list to hold node data
@@ -26,6 +28,19 @@ local function save_node(schema_file, x, y, z)
 	table.insert(node, node_table.param2)
 	--get node metadata
 	local node_meta = core.get_meta(pos)
+	local node_meta_keys = node_meta:get_keys()
+
+	if #node_meta_keys > 0 then
+		--core.chat_send_player(name, dump(node_meta_keys))
+	end
+
+	--[7]
+	if node_table.name == "default:chest_locked" then
+		table.insert(node, node_meta:get_string("owner"))
+	elseif node_table.name == "default:sign_wall_wood" then
+		table.insert(node, node_meta:get_string("text"))
+	end
+
 	--get node inventory metadata
 	local inv = node_meta:get_inventory()
 	--get inventory types
@@ -34,16 +49,34 @@ local function save_node(schema_file, x, y, z)
 		for i, itemstack in ipairs(items) do
 			--if slot empty, insert placeholder, b/c data organized as [list] [name] [count]
 			if itemstack:is_empty() then
-				table.insert(node, "0 0 0")
+				table.insert(node, "0 0 0 0 0")
 			else
-				table.insert(node, list.." "..itemstack:get_name().." "..itemstack:get_count())
+				local itemstack_meta = itemstack:get_meta()
+				local itemstack_meta_keys = itemstack_meta:get_keys()
+				--local book_body = {}
+				local book_body = ""
+				for i, v in ipairs(itemstack_meta_keys) do
+					-- if i == #itemstack_meta_keys then
+					-- 	table.insert(book_body, v)
+					-- end
+					--book_body = book_body..v
+				end
+
+				table.insert(
+					node, 
+					list.." "..
+					itemstack:get_name().." "..
+					itemstack:get_count()
+					--"_"..itemstack_meta:get_string("description").."|"..
+					--"_"..itemstack_meta:get_string("text")
+				)
 			end
 		end
 	end
 	--write node data as comma separated line in schema file
-	schema_file:write(table.concat(node, ",").."\n")
+	schema_file:write(table.concat(node, divider).."\n")
 	
-	--close schema file after writing in all data for that node
+	--close schema file after writing in all data for that node 
 	--schema_file:close()
 end
 
@@ -110,7 +143,7 @@ core.register_chatcommand("sa", {
 					for z = zmin, zmax do
 						--monitor(i, #dir_list, x, y, z, xmax, ymax, zmax)
 						--save_node(schema_dir, file, x, y, z)
-						save_node(schema_file, x, y, z)
+						save_node(name, schema_file, x, y, z)
 					end
 				end
 			end	
@@ -134,7 +167,7 @@ core.register_chatcommand("la", {
 			--loop through each node data which is a line in schema file
 			for line in schema_file:lines() do
 				--split data of the node by ","
-				local node_list = string.split(line, ",")
+				local node_list = string.split(line, divider)
 				--extract node position coordinates
 				local x, y, z = node_list[1], node_list[2], node_list[3]
 				--create position vector
@@ -145,16 +178,27 @@ core.register_chatcommand("la", {
 				core.set_node(pos, node_table)
 				--get node metadata from position
 				local node_meta = core.get_meta(pos)
+
+				--[7]
+				if node_table.name == "default:chest_locked" then
+					node_meta:set_string("owner", node_list[7])
+					node_meta:set_string("infotext", node_list[7])
+				elseif node_table.name == "default:sign_wall_wood" then
+					node_meta:set_string("text", node_list[7])
+					node_meta:set_string("infotext", node_list[7])
+				end
+				
 				--get node inventory metadata from position
 				local inv = node_meta:get_inventory(pos)
 				--loop through remaining data in node list for inventory items
-				for i = 7, #node_list do
+				for i = 8, #node_list do
 					--split each inventory slot into list name, item name and item count
 					local item_data = string.split(node_list[i], " ")
 					--set each element into variables
 					local list_name, item_name, item_count = item_data[1], item_data[2], item_data[3]
 					--add item into each node inventory slot
 					inv:add_item(list_name, item_name.." "..item_count)
+					
 				end
 			end
 			--close schema file after all nodes and their data are set in world
