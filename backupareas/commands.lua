@@ -62,6 +62,7 @@ local function save_node(name, schema_file, x, y, z)
 
 		--local single_line = string.gsub(v, "\n", " ")
 		local meta_val = node_meta:get_string(v)
+		--fixes any node meta value that has more than one line, which shows in schema file
 		local meta_val_line = string.gsub(meta_val, "\n", " ")
 		node["n_meta"][v] = meta_val_line
 
@@ -71,6 +72,10 @@ local function save_node(name, schema_file, x, y, z)
 		-- end
 
 		--node["node_meta"][v] = "hi"
+
+		if node_table.name == "default:furnace" then
+			--core.chat_send_player(name, node_meta:get_string(v))
+		end
 	end
 
 	local inv = node_meta:get_inventory()
@@ -109,7 +114,20 @@ local function save_node(name, schema_file, x, y, z)
 		end
 	end
 
-	schema_file:write(core.serialize(node).."\n")
+	local text = core.serialize(node)
+	--fixes any line that doesn't start with "return" which comes from serialization
+	local startIndex, endIndex = string.find(text, "return")
+	local substring = string.sub(text, startIndex)
+	schema_file:write(substring.."\n")
+	
+	-- if text:sub(1, 1) ~= "r" then
+	-- 	core.chat_send_player(name, text)
+	-- end
+
+
+	--core.chat_send_player(name, text:sub(1, 1))
+
+	--schema_file:write(core.serialize(node).."\n")
 	
 	--schema_file:write("\n"..core.serialize(node))
 	--schema_file:write(core.serialize(node))
