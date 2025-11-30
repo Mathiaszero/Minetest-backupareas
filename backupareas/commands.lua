@@ -94,22 +94,46 @@ local function save_node(name, schema_file, x, y, z)
 	-- 	end
 	-- end
 
-	for inv_type, inv_type_contents in pairs(inv_lists) do
+	-- for inv_type, inv_type_contents in pairs(inv_lists) do
 
-		if node_table.name == "default:furnace" then
-			--break
-		end
+	-- 	if node_table.name == "default:furnace" then
+	-- 		--break
+	-- 	end
 
-		node["inv"][inv_type] = {}
-		for istack_index, istack in ipairs(inv_type_contents) do
-			node["inv"][inv_type][istack_index] = {name = istack:get_name(), count = istack:get_count(), i_meta = {}}
+	--{main = {name=...}, dst = {name=...}
+	-- 	node["inv"][inv_type] = {}
+	-- 	for istack_index, istack in ipairs(inv_type_contents) do
+	-- 		node["inv"][inv_type][istack_index] = {name = istack:get_name(), count = istack:get_count(), i_meta = {}}
+	-- 		local istack_meta = istack:get_meta()
+	-- 		local istack_meta_keys = istack_meta:get_keys()
+	-- 		for tri_key, tri_val in pairs(node["inv"][inv_type][istack_index]) do
+	-- 			for key_index, key in pairs(istack_meta_keys) do
+	-- 				node["inv"][inv_type][istack_index].i_meta[key] = istack_meta:get_string(key)
+	-- 				--core.chat_send_player(name, key)
+	-- 			end
+	-- 		end
+	-- 	end
+	-- end
+
+	for list, list_contents in pairs(inv_lists) do
+		--core.chat_send_player(name, list)
+		for istack_index, istack in ipairs(list_contents) do
+			--core.chat_send_player(name, istack)--err userdata
+			--core.chat_send_player(name, dump(istack_index))
+			table.insert(node.inv, {list = list, name = istack:get_name(), count = istack:get_count(), i_meta = {}})
 			local istack_meta = istack:get_meta()
 			local istack_meta_keys = istack_meta:get_keys()
-			for tri_key, tri_val in pairs(node["inv"][inv_type][istack_index]) do
-				for key_index, key in pairs(istack_meta_keys) do
-					node["inv"][inv_type][istack_index].i_meta[key] = istack_meta:get_string(key)
+			for quad_index, quad in ipairs(node.inv) do
+				--core.chat_send_player(name, dump(v))--shows the 4 data above
+				for key_index, key in ipairs(istack_meta_keys) do
 					--core.chat_send_player(name, key)
-				end
+					--quad.i_meta[key] = istack_meta:get_string(key) 
+
+					local meta_val = istack_meta:get_string(key)
+					--fixes any istack meta value that has more than one line, which shows in schema file
+					local meta_val_line = string.gsub(meta_val, "\n", " ")
+					quad.i_meta[key] = meta_val_line
+	 			end
 			end
 		end
 	end
@@ -119,7 +143,8 @@ local function save_node(name, schema_file, x, y, z)
 	local startIndex, endIndex = string.find(text, "return")
 	local substring = string.sub(text, startIndex)
 	schema_file:write(substring.."\n")
-	
+	--schema_file:write(text.."\n")
+
 	-- if text:sub(1, 1) ~= "r" then
 	-- 	core.chat_send_player(name, text)
 	-- end
@@ -240,7 +265,7 @@ core.register_chatcommand("la", {
 					local z = obj[3]
 					local pos = vector.new(x, y, z)
 					local node_table = {name = obj[4], param1 = obj[5], param2 = obj[6]}
-					core.set_node(pos, node_table)
+					--core.set_node(pos, node_table)
 
 					local node_meta = core.get_meta(pos)
 					local node_meta_keys = obj["n_meta"]
@@ -250,8 +275,58 @@ core.register_chatcommand("la", {
 					end
 
 					local inv = node_meta:get_inventory(pos)
+					-- local inv = node_meta:get_inventory(pos)
+					-- local inv_lists = inv:get_lists()
+					-- --core.chat_send_player(name, dump(inv_lists))
+					-- if #inv_lists > 0 then
+					-- 	core.chat_send_player(name, dump(inv_lists))
+					-- end
+					-- for list, list_inv in ipairs(inv_lists) do
+					-- 	--core.chat_send_player(name, list)
+					-- 	--core.chat_send_player(name, dump(list_inv))
+					-- 	--core.chat_send_player(name, v)--err, table val
+					-- 	--local saved_inv = obj[]
+					-- 	for i, v in pairs(obj["inv"]) do
+					-- 		--core.chat_send_player(name, dump(v))
+					-- 	end
+					-- end
 
-				end
+					--core.chat_send_player(name, obj.inv)--err string exp got table (at least it's recognized)
+					--core.chat_send_player(name, #obj.inv)--mostly 0
+
+					-- if #obj.inv > 0 then
+					-- 	core.chat_send_player(name, #obj.inv)
+					-- end
+
+					-- for i, v in ipairs(obj.inv) do
+					-- 	if obj.inv.list and obj.inv.name and obj.inv.count then
+					-- 		inv:add_item(obj.inv.list, obj.inv.name.." "..obj.inv.count)
+					-- 	end
+					-- end
+
+					-- if obj[4]=="default:chest_locked" then
+					-- 	--core.chat_send_player(name, "YUS")--works
+					-- 	core.chat_send_player(name, dump(obj.inv))--works
+					-- end
+
+					-- for i, v in ipairs(obj["inv"]) do
+					-- 	--if obj.inv.list and obj.inv.name and obj.inv.count then
+					-- 		--inv:add_item(tostring(obj["inv"]["list"]), tostring(obj["inv"]["name"]).." "..tostring(obj["inv"]["count"]))
+					-- 		inv:add_item("main", "default:cobble 1")
+					-- 	--end
+					-- end
+
+					local inv_lists = inv:get_lists()
+					for list, list_inv in pairs(inv_lists) do
+						--core.chat_send_player(name, dump(list))
+						--core.chat_send_player(name, dump(list_inv))
+						for i, v in ipairs(list_inv) do
+							--inv:set_stack(obj["inv"]["list"], i, obj["inv"]["name"].." "..obj["inv"]["count"])
+							--core.chat_send_player(name, dump(i))
+							inv:set_stack(list, i, tostring(obj["inv"][i]["name"]).." "..obj["inv"][i]["count"])
+						end
+					end
+				end	
 				--core.chat_send_player(name, obj[1])--if enabled it errors
 				
 				--core.chat_send_player(name, dump(obj["inv"]))
