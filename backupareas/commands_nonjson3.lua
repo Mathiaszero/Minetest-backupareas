@@ -2,6 +2,7 @@ local S = core.get_translator("backupareas")
 
 local dd = "||"
 local d = "|"
+local hex = "43dfd"
 
 local function save_node(player, schema_file, x, y, z)
 	--open file to append node data (lags b/c each node)
@@ -28,7 +29,7 @@ local function save_node(player, schema_file, x, y, z)
 	for i, v in ipairs(node_meta_keys) do
 		--core.chat_send_player(name, v)
 		--remove \n in string value
-		local sub = string.gsub(node_meta:get(v), "\n", " ")
+		local sub = string.gsub(node_meta:get(v), "\n", hex)
 		table.insert(node, string.format("%s%s%s%s%s", "nodemeta", d, v, d, sub))
 	end
 
@@ -73,7 +74,7 @@ local function save_node(player, schema_file, x, y, z)
 					value = item_meta:get_string(key)
 
 					--remove any new lines in value so it won't mess up saved area data
-					local sub = string.gsub(value, "\n", " ")
+					local sub = string.gsub(value, "\n", hex)
 
 					--core.chat_send_player(player, key..": "..value)--works
 					table.insert(node, string.format("%s%s%s%s%s%s%s%s%s", "itemmeta", d, list, d, i, d, key, d, sub))
@@ -230,7 +231,9 @@ core.register_chatcommand("la", {
 				local node_meta = core.get_meta(pos)
 				for key, value in pairs(saved_nodemeta) do
     				--core.chat_send_player(player, "Key: " .. key .. ", Value: " .. value)
-					node_meta:set_string(key, value)
+					--add new line char back to node meta
+					local sub = string.gsub(value, hex, "\n")
+					node_meta:set_string(key, sub)
 				end
 				
 				-- if node_base.name == "default:chest_locked" then
@@ -252,7 +255,9 @@ core.register_chatcommand("la", {
 						--core.chat_send_player(player, dump(v))--ok
 
 						core.chat_send_player(player, v.key..": "..v.value)--ok
-						itemmeta:set_string(v.key, v.value)--not sure why not working
+						local sub = string.gsub(v.value, hex, "\n")
+						itemmeta:set_string(v.key, sub)
+						--actually write meta to inventory; see common issues in cookbook
 						inv_ref:set_stack(v.list, v.index, stack)
 					end
 				end
