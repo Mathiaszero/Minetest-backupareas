@@ -101,16 +101,21 @@ core.register_chatcommand("sa", {
 		--recreate directory
 		core.mkdir(schema_dir)
 		--get list of areas in areas mod data file
-		local ad_path = core.get_worldpath().."/areas.dat" 
+		local ad_path = core.get_worldpath().."/areas.dat"
 		--open areas dat file
 		local ad_file, err = io.open(ad_path, "r")
 		--read all text in areas dat file
 		local ad_data = ad_file:read("*all")
+		--check if there is "null,"
+		if string.find(ad_data, "null,") then
+			core.chat_send_player(player,"Error: Save areas failed; null areas exist in .dat, remove then rerun.")
+			return
+		end
 		--text in areas dat file can be parsed to json
 		local ad_json = core.parse_json(ad_data)
 		--no areas shows as "null" in areas dat file, so catch it
 		if ad_json == nil then
-			core.chat_send_player(name, "Error, no areas to save.")
+			core.chat_send_player(player, "Error, no areas to save.")
 			ad_file:close()
 			return
 		end
@@ -159,6 +164,7 @@ core.register_chatcommand("sa", {
 			end	
 			schema_file:close()
 		end
+		core.chat_send_player(player, "Saved all areas.")
 	end,
 })
 
@@ -254,5 +260,6 @@ core.register_chatcommand("la", {
 			--close schema file after all nodes and their data are set in world
 			schema_file:close()
 		end
+		core.chat_send_player(player, "Loaded all areas.")
 	end,
 })
