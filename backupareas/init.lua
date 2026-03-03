@@ -2,7 +2,7 @@ backupareas = {}
 
 backupareas.modpath = core.get_modpath("backupareas")
 --dofile(backupareas.modpath.."/commands.lua")
-dofile(backupareas.modpath.."/commands_nonjson3.lua")
+dofile(backupareas.modpath.."/chatcommands.lua")
 
 --backupareas:load()
 text = "backupareas loaded."
