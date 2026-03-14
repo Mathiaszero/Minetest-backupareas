@@ -37,6 +37,7 @@ local function save_node(player, schema_file, x, y, z)
 
 	--get node inventory metadata
 	local inv_ref = node_meta:get_inventory()
+	if not inv_ref:get_lists() then return end
 	--get inventory types
 	for list, list_inv in pairs(inv_ref:get_lists()) do
 		--core.chat_send_player(player, list)
